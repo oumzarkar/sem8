@@ -1,0 +1,184 @@
+SEED_VALUE = 42
+ 
+# Fix seed to make training deterministic.
+np.random.seed(SEED_VALUE)
+tf.random.set_seed(SEED_VALUE)
+ChatGPT
+Certainly! Let's break down each line of code:
+
+SEED_VALUE = 42: This line assigns the integer value 42 to the variable SEED_VALUE. This value represents the seed that will be used for random number generation.
+# Fix seed to make training deterministic.: This is a comment line. Comments are ignored by the Python interpreter and are used to provide information or context to the human reader. In this case, it explains the purpose of the subsequent code, which is to fix the seed to ensure deterministic behavior during training.
+np.random.seed(SEED_VALUE): This line sets the seed for the random number generator provided by the NumPy library (np.random). Setting the seed ensures that the sequence of random numbers generated will be the same every time the code is run with the same seed. This is important for reproducibility, especially in machine learning tasks where randomness is involved.
+tf.random.set_seed(SEED_VALUE): This line sets the seed for the random number generator provided by TensorFlow (tf.random). Similarly to NumPy, setting the seed ensures that the random numbers generated during TensorFlow operations will be reproducible.
+
+
+(X_train, y_train), (X_test, y_test) = boston_housing.load_data()
+ 
+print(X_train.shape)
+print("\n")
+print("Input features: ", X_train[0])
+print("\n")
+print("Output target: ", y_train[0])
+ChatGPT
+This code appears to be loading the Boston housing dataset using a function load_data() from a module or library named boston_housing. Then, it prints out some information about the loaded data. Let's break it down:
+
+(X_train, y_train), (X_test, y_test) = boston_housing.load_data(): This line of code loads the Boston housing dataset. It seems like the data is divided into training and testing sets, with features (X_train and X_test) and target values (y_train and y_test). The data is loaded using the load_data() function from a module or library named boston_housing.
+print(X_train.shape): This line prints the shape of the training feature data (X_train). It gives the dimensions of the data, typically represented as (number of samples, number of features).
+print("\n"): This line prints a newline character, which is used to add an empty line for better readability in the output.
+print("Input features: ", X_train[0]): This line prints the input features of the first sample in the training dataset (X_train[0]). It provides information about the features of a particular data point.
+print("\n"): Another newline character is printed to add a blank line for separation in the output.
+print("Output target: ", y_train[0]): This line prints the output target (or label) of the first sample in the training dataset (y_train[0]). It provides information about the target value corresponding to the first data point.
+
+
+boston_features = {
+    'Average Number of Rooms':5,
+}
+ 
+X_train_1d = X_train[:, boston_features['Average Number of Rooms']]
+print(X_train_1d.shape)
+ 
+X_test_1d = X_test[:, boston_features['Average Number of Rooms']]
+ChatGPT
+This code seems to be selecting a specific feature from the Boston housing dataset and creating 1-dimensional arrays for both the training and testing sets based on that feature. Let's break it down:
+
+boston_features = {'Average Number of Rooms': 5}: This line creates a dictionary named boston_features with a single key-value pair. The key is 'Average Number of Rooms', which likely represents a feature of the Boston housing dataset. The corresponding value is 5, which might represent the index of this feature in the dataset.
+X_train_1d = X_train[:, boston_features['Average Number of Rooms']]: This line creates a 1-dimensional array (X_train_1d) by selecting a specific feature from the training set (X_train). It uses array slicing to select all rows (:) and the column corresponding to the feature specified in boston_features['Average Number of Rooms']. Since the value associated with the key 'Average Number of Rooms' is 5, it seems to be selecting the feature indexed at position 5.
+print(X_train_1d.shape): This line prints the shape of the 1-dimensional array X_train_1d. This will likely output a tuple representing the dimensions of the array, where the first value is the number of samples (rows) and the second value is 1, indicating that it's a 1-dimensional array.
+X_test_1d = X_test[:, boston_features['Average Number of Rooms']]: Similar to the line above, this line creates a 1-dimensional array (X_test_1d) by selecting the same specific feature from the testing set (X_test).
+
+
+User
+plt.figure(figsize=(15, 5))
+ 
+plt.xlabel('Average Number of Rooms')
+plt.ylabel('Median Price [$K]')
+plt.grid("on")
+plt.scatter(X_train_1d[:], y_train, color='green', alpha=0.5);
+
+ChatGPT
+This code seems to be creating a scatter plot to visualize the relationship between the average number of rooms and the median price of houses in the Boston housing dataset. Let's break it down:
+
+plt.figure(figsize=(15, 5)): This line creates a new figure for the plot with a specific size. The figsize parameter is set to (15, 5), which means the width of the figure will be 15 units and the height will be 5 units.
+plt.xlabel('Average Number of Rooms'): This line sets the label for the x-axis of the plot to 'Average Number of Rooms'. This represents the feature being plotted on the x-axis.
+plt.ylabel('Median Price [$K]'): This line sets the label for the y-axis of the plot to 'Median Price [$K]'. This represents the target variable (median price) being plotted on the y-axis.
+plt.grid("on"): This line enables the gridlines on the plot. It provides a visual aid to help understand the scale of the plot.
+plt.scatter(X_train_1d[:], y_train, color='green', alpha=0.5): This line creates a scatter plot. It plots the feature data (X_train_1d) on the x-axis and the target data (y_train) on the y-axis. The color of the points is set to green (color='green'), and the transparency is set to 0.5 (alpha=0.5), making the points slightly transparent.
+
+
+model = Sequential()
+ 
+# Define the model consisting of a single neuron.
+model.add(Dense(units=1, input_shape=(1,)))
+ 
+# Display a summary of the model architecture.
+model.summary()
+ChatGPT
+This code snippet defines a simple neural network model using the Keras API with TensorFlow backend. Let's break it down:
+
+model = Sequential(): This line initializes a sequential model. A sequential model is appropriate for a plain stack of layers where each layer has exactly one input tensor and one output tensor.
+model.add(Dense(units=1, input_shape=(1,))): This line adds a dense (fully connected) layer to the model. The Dense layer represents a simple feedforward neural network layer where every input node is connected to every output node. The units parameter specifies the dimensionality of the output space, which in this case is set to 1, indicating a single output neuron. The input_shape parameter specifies the shape of the input data expected by the layer, which in this case is a one-dimensional input (1,). This means the layer expects input data with one feature.
+model.summary(): This line prints a summary of the model architecture. It displays information about the layers in the model, including the type of layer, output shape, number of parameters, and the number of trainable parameters. This summary provides useful information for understanding the structure of the model.
+
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=.005), loss='mse')
+ChatGPT
+This line of code compiles the defined neural network model using the RMSprop optimizer and Mean Squared Error (MSE) loss function. Let's break it down:
+
+model.compile: This method configures the model for training. It requires you to specify an optimizer and a loss function.
+optimizer=tf.keras.optimizers.RMSprop(learning_rate=.005): Here, RMSprop is used as the optimizer. RMSprop is an optimization algorithm that adjusts the learning rates of each parameter based on the average of recent gradients for that parameter. The learning_rate parameter is set to 0.005, which controls the step size of the optimizer during training.
+loss='mse': This specifies the loss function to be used during training. In this case, it's the Mean Squared Error (MSE) loss function. MSE is commonly used for regression problems, including predicting continuous values like house prices in the Boston housing dataset. It measures the average squared difference between the predicted values and the actual values.
+
+history = model.fit(X_train_1d, 
+                    y_train, 
+                    batch_size=16, 
+                    epochs=101, 
+                    validation_split=0.3)
+ChatGPT
+This code trains the compiled neural network model (model) on the provided training data (X_train_1d and y_train). Let's break it down:
+
+history = model.fit(...): This line invokes the fit method of the model, which trains the model on the training data. The method returns a history object that contains information about the training process, such as the loss and accuracy metrics at each epoch.
+X_train_1d: This is the input data for training, which represents the average number of rooms in the Boston housing dataset.
+y_train: This is the target output data for training, which represents the median price of houses in the Boston housing dataset.
+batch_size=16: This parameter specifies the number of samples per gradient update. In each iteration of training, the model will process 16 samples at a time.
+epochs=101: This parameter specifies the number of epochs (iterations over the entire dataset) for training the model. The model will be trained for 101 epochs.
+validation_split=0.3: This parameter specifies the proportion of the training data to use for validation. In this case, 30% of the training data will be used for validation during training.
+
+def plot_loss(history):
+    plt.figure(figsize=(20,5))
+    plt.plot(history.history['loss'], 'g', label='Training Loss')
+    plt.plot(history.history['val_loss'], 'b', label='Validation Loss')
+    plt.xlim([0, 100])
+    plt.ylim([0, 300])
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid(True)
+
+ChatGPT
+This function plot_loss is designed to plot the training loss and validation loss over epochs, based on the provided history object. Let's break it down:
+
+def plot_loss(history): This line defines a function named plot_loss that takes the history object as input.
+plt.figure(figsize=(20,5)): This line creates a new figure for the plot with a specific size. The figsize parameter is set to (20, 5), which means the width of the figure will be 20 units and the height will be 5 units.
+plt.plot(history.history['loss'], 'g', label='Training Loss'): This line plots the training loss over epochs using a green line ('g'). The training loss values are obtained from the history object.
+plt.plot(history.history['val_loss'], 'b', label='Validation Loss'): This line plots the validation loss over epochs using a blue line ('b'). The validation loss values are obtained from the history object.
+plt.xlim([0, 100]): This line sets the limits of the x-axis (epochs) from 0 to 100.
+plt.ylim([0, 300]): This line sets the limits of the y-axis (loss) from 0 to 300.
+plt.xlabel('Epoch'): This line sets the label for the x-axis of the plot to 'Epoch', indicating the number of training epochs.
+plt.ylabel('Loss'): This line sets the label for the y-axis of the plot to 'Loss', indicating the loss value.
+plt.legend(): This line adds a legend to the plot, which helps distinguish between the training loss and validation loss lines.
+plt.grid(True): This line enables gridlines on the plot for better visualization.
+
+# Predict the median price of a home with [3, 4, 5, 6, 7] rooms.
+x = [3, 4, 5, 6, 7]
+y_pred = model.predict(x)
+for idx in range(len(x)):
+    print("Predicted price of a home with {} rooms: ${}K".format(x[idx], int(y_pred[idx]*10)/10))
+
+ChatGPT
+This code predicts the median price of homes with a given number of rooms using the trained model. Here's how it works:
+
+x = [3, 4, 5, 6, 7]: This line defines a list x containing different numbers of rooms for which we want to predict the median price.
+y_pred = model.predict(x): This line predicts the median price for each number of rooms in the list x using the trained model.
+for idx in range(len(x)):: This line starts a loop iterating over the indices of the elements in the list x.
+print("Predicted price of a home with {} rooms: ${}K".format(x[idx], int(y_pred[idx]*10)/10)): Within the loop, this line prints out the predicted median price for a home with the corresponding number of rooms. It formats the output string to display the number of rooms and the predicted price in thousands of dollars.
+
+# Generate feature data that spans the range of interest for the independent variable.
+x = tf.linspace(3, 9, 10)
+ 
+# Use the model to predict the dependent variable.
+y = model.predict(x)
+
+ChatGPT
+This code generates feature data spanning the range of interest for the independent variable, then uses the trained model to predict the dependent variable based on this feature data. Here's what's happening:
+
+x = tf.linspace(3, 9, 10): This line generates a sequence of evenly spaced numbers between 3 and 9 (inclusive), with a total of 10 points. This creates a range of values representing the number of rooms for which we want to predict the median price.
+y = model.predict(x): This line uses the trained model to predict the dependent variable (median price) based on the feature data x, which represents the number of rooms. The predict method of the model is used to obtain the predicted median prices for the provided feature data.
+
+plot_data(x_data, y_data, x, y, title=None):
+    plt.figure(figsize=(15,5))
+    plt.scatter(x_data, y_data, label='Ground Truth', color='green', alpha=0.5)
+    plt.plot(x, y, color='k', label='Model Predictions')
+    plt.xlim([3,9])
+    plt.ylim([0,60])
+    plt.xlabel('Average Number of Rooms')
+    plt.ylabel('Price [$K]')
+    plt.title(title)
+    plt.grid(True)
+    plt.legend()
+ChatGPT
+This function plot_data is designed to plot the ground truth data along with model predictions. Let's break it down:
+
+def plot_data(x_data, y_data, x, y, title=None):: This line defines a function named plot_data that takes five arguments: x_data (the independent variable from the ground truth data), y_data (the dependent variable from the ground truth data), x (the independent variable used for model predictions), y (the dependent variable predicted by the model), and an optional title for the plot.
+plt.figure(figsize=(15,5)): This line creates a new figure for the plot with a specific size. The figsize parameter is set to (15, 5), which means the width of the figure will be 15 units and the height will be 5 units.
+plt.scatter(x_data, y_data, label='Ground Truth', color='green', alpha=0.5): This line plots the ground truth data points as a scatter plot. The x_data and y_data represent the independent and dependent variables from the ground truth data, respectively. The points are colored green (color='green') with an opacity of 0.5 (alpha=0.5).
+plt.plot(x, y, color='k', label='Model Predictions'): This line plots the model predictions as a line plot. The x and y represent the independent and dependent variables predicted by the model, respectively. The line color is black (color='k').
+plt.xlim([3,9]): This line sets the limits of the x-axis (average number of rooms) from 3 to 9.
+plt.ylim([0,60]): This line sets the limits of the y-axis (price) from 0 to 60.
+plt.xlabel('Average Number of Rooms'): This line sets the label for the x-axis of the plot to 'Average Number of Rooms'.
+plt.ylabel('Price [$K]'): This line sets the label for the y-axis of the plot to 'Price [$K]'.
+plt.title(title): This line sets the title of the plot to the value specified by the title argument. If no title is provided, the plot will have no title.
+plt.grid(True): This line enables gridlines on the plot for better visualization.
+plt.legend(): This line adds a legend to the plot, which helps distinguish between the ground truth data and model predictions.
+
+
+
+

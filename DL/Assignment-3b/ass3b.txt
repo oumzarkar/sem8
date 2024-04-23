@@ -1,0 +1,152 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from tensorflow.keras.utils import to_categorical
+
+# Load the Fashion MNIST dataset
+(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
+
+# Preprocess the data
+train_images = train_images.reshape((train_images.shape[0], 28, 28, 1)).astype('float32') / 255
+test_images = test_images.reshape((test_images.shape[0], 28, 28, 1)).astype('float32') / 255
+train_labels = to_categorical(train_labels)
+test_labels = to_categorical(test_labels)
+
+# Define the CNN model
+model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+    MaxPooling2D((2, 2)),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D((2, 2)),
+    Conv2D(64, (3, 3), activation='relu'),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dense(10, activation='softmax')
+])
+
+# Compile the model
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Train the model
+model.fit(train_images, train_labels, epochs=15, batch_size=64, validation_split=0.2)
+
+# Select random images from the test set
+num_samples = 5
+random_indices = np.random.choice(len(test_images), num_samples, replace=False)
+sample_images = test_images[random_indices]
+sample_labels = test_labels[random_indices]
+
+# Make predictions on the sample images
+predictions = model.predict(sample_images)
+predicted_labels = np.argmax(predictions, axis=1)
+
+# Define class labels
+class_labels = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+# Show images with their predicted and true labels
+plt.figure(figsize=(10, 6))
+for i in range(num_samples):
+    plt.subplot(1, num_samples, i + 1)
+    plt.imshow(sample_images[i].reshape(28, 28), cmap='gray')
+    plt.title(f"True: {class_labels[np.argmax(sample_labels[i])]} \nPredicted: {class_labels[predicted_labels[i]]}")
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+ChatGPT
+Your code trains a convolutional neural network (CNN) on the Fashion MNIST dataset and then evaluates it by making predictions on a few random images from the test set. Here's a breakdown of the process:
+
+Load and Preprocess Data:
+You load the Fashion MNIST dataset using fashion_mnist.load_data() from TensorFlow.
+The images are reshaped to have a single channel (since they are grayscale) and normalized to values between 0 and 1.
+The labels are one-hot encoded using to_categorical().
+Define CNN Model:
+You define a sequential model with multiple convolutional layers followed by max-pooling layers.
+After the convolutional layers, you add a flattening layer to convert the 2D feature maps into a 1D vector.
+Finally, you add dense layers for classification, with the last layer having 10 units (one for each class) and a softmax activation function.
+Compile and Train Model:
+The model is compiled with the Adam optimizer, categorical cross-entropy loss function, and accuracy as the metric.
+Training is performed using model.fit() with a batch size of 64 and validation split of 0.2 for 15 epochs.
+Make Predictions:
+Random samples of images from the test set are selected.
+Predictions are made on these samples using model.predict().
+The predicted labels are obtained by selecting the class with the highest probability.
+Visualization:
+Matplotlib is used to display the selected images along with their true and predicted labels.
+Each image is shown with its true label and the label predicted by the model.
+
+# Save the model
+model.save('my_cnn_model.h5')
+
+from tensorflow.keras.models import load_model
+# Load the model
+loaded_model = load_model('my_cnn_model.h5')
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+WARNING:absl:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+import tkinter as tk
+from tkinter import ttk, filedialog
+from PIL import ImageTk, Image
+import numpy as np
+from tensorflow.keras.models import load_model
+
+# Load the trained model
+model = load_model('my_cnn_model.h5')
+
+# Define class labels
+class_labels = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+def predict_image():
+    # Allow user to select an image file
+    file_path = filedialog.askopenfilename()
+    if not file_path:
+        return
+    
+    # Load and preprocess the image
+    img = Image.open(file_path).convert('L')  # Convert to grayscale
+    img = img.resize((28, 28))
+    img = np.array(img) / 255.0
+    img = img.reshape((1, 28, 28, 1))
+
+    # Make predictions on the image
+    prediction = model.predict(img)
+    predicted_label = class_labels[np.argmax(prediction)]
+
+    # Display the image and predicted label
+    img = Image.open(file_path)
+    img = img.resize((200, 200))
+    img = ImageTk.PhotoImage(img)
+    image_label.config(image=img)
+    image_label.image = img
+    status_label.config(text=f"Predicted Label: {predicted_label}")
+
+# Create the main application window
+root = tk.Tk()
+root.title("Fashion MNIST Image Classifier")
+
+# Add a button to upload an image and predict
+upload_button = ttk.Button(root, text="Upload Image", command=predict_image)
+upload_button.grid(row=0, column=0, columnspan=3)
+
+# Add labels for displaying image and prediction information
+image_label = ttk.Label(root)
+image_label.grid(row=1, column=0, columnspan=3)
+
+status_label = ttk.Label(root, text="")
+status_label.grid(row=2, column=0, columnspan=3)
+
+# Run the application loop
+root.mainloop()
+ChatGPT
+Your code sets up a simple GUI application using Tkinter for predicting fashion items from uploaded images. Here's how it works:
+
+Model Loading: You load the trained CNN model that you saved previously.
+Image Prediction Function: The predict_image() function is defined to allow the user to select an image file. It opens a file dialog for the user to choose an image. Once an image is selected, it preprocesses the image by converting it to grayscale, resizing it to 28x28 pixels, and normalizing the pixel values to the range [0, 1]. Then, it makes predictions on the image using the loaded model and displays the image along with the predicted label.
+GUI Setup: The main application window is created using Tkinter. It includes a button for uploading an image (upload_button), labels for displaying the uploaded image (image_label) and the predicted label (status_label).
+Button Action: When the user clicks the "Upload Image" button, it triggers the predict_image() function, which allows the user to select an image file, makes predictions on the selected image, and updates the GUI with the image and the predicted label.
+Application Loop: The application enters the main event loop (root.mainloop()) to handle user interactions and maintain the GUI.
+

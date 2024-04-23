@@ -1,0 +1,196 @@
+from keras.datasets import imdb # Load the data, keeping only 10,000 of the most frequently occuring words
+(train_data, train_labels), (test_data, test_labels) = imdb.load_data(num_words = 10000)
+
+word_index = imdb.get_word_index()
+reverse_word_index = dict([(value, key) for (key, value) in word_index.items()])
+decoded_review = ' '.join([reverse_word_index.get(i-3, '?') for i in train_data[0]])
+
+import numpy as np
+
+def vectorize_sequences(sequences, dimension=10000):
+    results = np.zeros((len(sequences), dimension))    # Creates an all zero matrix of shape (len(sequences),10K)
+    for i,sequence in enumerate(sequences):
+        results[i,sequence] = 1                        # Sets specific indices of results[i] to 1s
+    return results
+
+# Vectorize training Data
+X_train = vectorize_sequences(train_data)
+
+# Vectorize testing Data
+X_test = vectorize_sequences(test_data)
+
+ChatGPT
+This code loads the IMDb movie review dataset, which is already preprocessed and tokenized, and then vectorizes the sequences of words into binary feature vectors. Here's a breakdown of the code:
+
+Importing Libraries: The code imports necessary libraries, including Keras and NumPy.
+Loading IMDb Dataset: The IMDb movie review dataset is loaded using the imdb.load_data() function. The parameter num_words=10000 specifies that only the 10,000 most frequently occurring words will be kept in the dataset, reducing the vocabulary size and simplifying the modeling process.
+Word Index Mapping: The word_index variable contains a dictionary mapping words to their integer index in the dataset. reverse_word_index is then created by reversing this mapping, so integer indices can be mapped back to words.
+Decoding a Review: The first review from the training data is decoded from integer indices back to words using the reverse_word_index mapping. This is done to visualize a sample review in human-readable format.
+Vectorizing Sequences: The vectorize_sequences() function is defined to convert sequences of word indices into binary feature vectors. Each vector has a length of 10,000 (specified by the dimension parameter), and indices corresponding to words present in the sequence are set to 1, while all other indices remain 0.
+Vectorizing Training and Testing Data: The training and testing datasets (train_data and test_data) are vectorized using the vectorize_sequences() function, resulting in binary feature representations (X_train and X_test) suitable for training machine learning models.
+Overall, this code prepares the IMDb movie review dataset for use in training and testing machine learning models for sentiment analysis.
+
+User
+class_names = ['negative','positive']
+
+y_train = np.asarray(train_labels).astype('float32')
+y_test  = np.asarray(test_labels).astype('float32')
+
+y_test
+
+from keras import models 
+from keras import layers 
+model = models.Sequential() 
+model.add(layers.Dense(16, activation='relu', input_shape=(10000,)))
+model.add(layers.Dense(16, activation='relu')) 
+model.add(layers.Dense(1, activation='sigmoid'))
+
+from keras import optimizers
+from keras import losses 
+from keras import metrics 
+model.compile(optimizer=optimizers.RMSprop(learning_rate=0.001), loss = losses.binary_crossentropy, metrics = [metrics.binary_accuracy])
+
+X_val = X_train[:10000]
+partial_X_train = X_train[10000:] # Labels for validation 
+y_val = y_train[:10000] 
+partial_y_train = y_train[10000:]
+
+history = model.fit(partial_X_train, partial_y_train, epochs=10, batch_size=512, validation_data=(X_val, y_val))
+ChatGPT
+This code snippet builds, compiles, and trains a simple neural network model for sentiment analysis on the IMDb movie review dataset. Here's a breakdown of the code:
+
+Defining Class Names and Preparing Labels:
+class_names: A list containing two class names, 'negative' and 'positive', representing the sentiment labels.
+y_train and y_test: Converting the labels in train_labels and test_labels to NumPy arrays of float32 data type. These arrays will be used as targets for model training and evaluation.
+Defining the Neural Network Model:
+A sequential model is created using models.Sequential().
+Two dense layers with 16 units and ReLU activation functions are added to the model. The first layer specifies the input shape as (10000,), indicating that the input data has a feature vector of length 10,000.
+The final dense layer has 1 unit with a sigmoid activation function, which outputs a probability score between 0 and 1, representing the likelihood of the review being positive.
+Compiling the Model:
+The model is compiled using the RMSprop optimizer with a learning rate of 0.001, binary cross-entropy loss function, and binary accuracy metric. This configuration is suitable for binary classification tasks like sentiment analysis.
+Preparing Validation Data:
+The first 10,000 samples from the training data (X_train[:10000] and y_train[:10000]) are used as validation data, while the remaining samples are used for actual training.
+Training the Model:
+The model is trained using model.fit() with a batch size of 512 and for 10 epochs. The validation_data parameter specifies the validation data to be used during training.
+The training progress and performance metrics (loss and accuracy) are stored in the history object, which can be used for visualization and analysis. This code sets up the entire pipeline for training a neural network model for sentiment analysis on the IMDb dataset.
+
+User
+# Making Predictions for testing data np.set_printoptions(suppress=True) 
+import numpy as np
+
+result = model.predict(np.expand_dims(X_test[19],axis=0))
+print(result,class_names[int(result[0]>0.5)])
+
+get_phrase = input("Enter: ")
+
+vec_words = []
+
+for i in get_phrase.split(" "):
+    vec_words.append(word_index[i.lower()])
+    
+vec_words = vectorize_sequences(vec_words)
+result = []
+#print(vec_words)
+for j in range(len(vec_words)):
+    result99 = model.predict(np.expand_dims(vec_words[j],axis=0))
+    #print(result99[0],class_names[int(result99[0]>0.5)])
+    result.append(class_names[int(result99[0]>0.5)])
+
+
+if result.count('negative')> result.count('positive'):
+    print("NEGATIVE")
+else:
+    print("POSITIVE")
+ChatGPT
+This code snippet demonstrates how to make predictions using the trained model for sentiment analysis. Let's break it down:
+
+Making Predictions on a Single Test Data Point:
+The code predicts the sentiment of a single test data point (X_test[19]) using the trained model.
+np.expand_dims(X_test[19], axis=0) is used to add an extra dimension to the input data to match the model's input shape.
+model.predict() is then called to predict the sentiment, and the result is stored in the variable result.
+Finally, the predicted sentiment is printed along with the corresponding class name ('negative' or 'positive') based on whether the predicted probability is greater than 0.5.
+Making Predictions on User Input:
+The code prompts the user to enter a phrase.
+The entered phrase is tokenized into individual words using split(" ").
+For each word in the phrase, its index in the word index mapping (word_index) is retrieved and appended to the vec_words list.
+The vectorize_sequences() function is used to convert the list of word indices (vec_words) into binary feature vectors suitable for model input.
+For each vectorized word, the model predicts the sentiment using model.predict(), and the predicted class name ('negative' or 'positive') is appended to the result list.
+Finally, based on the majority sentiment prediction among the words in the phrase, the overall sentiment of the phrase ('positive' or 'negative') is determined and printed.
+This code snippet demonstrates how to use the trained model to predict the sentiment of both individual test data points and user-entered phrases.
+
+User
+import tkinter as tk
+import numpy as np
+
+# Function to handle button click
+def display_name_and_predict():
+    # Get the name from the input field
+    name = entry.get()   
+    
+    vec_words = []
+    review_result = []
+
+    for i in name.split(" "):
+        vec_words.append(word_index[i.lower()])
+
+    vec_words = vectorize_sequences(vec_words)
+    result = []
+    #print(vec_words)
+    for j in range(len(vec_words)):
+        result99 = model.predict(np.expand_dims(vec_words[j],axis=0))
+        #print(result99[0],class_names[int(result99[0]>0.5)])
+        result.append(result99[0][0])
+        review_result.append(class_names[int(result99[0]>0.5)])
+
+    mean = sum(result)/len(result)
+    print(review_result)
+    final = ''
+    if review_result.count('negative')> review_result.count('positive'):
+        final = "NEGATIVE"
+    else:
+        final = "POSITIVE"
+    
+    # Display the name on the label
+    label.config(text=f"Comment is {round(mean,3)}% {final}!")
+
+# Create the main window
+window = tk.Tk()
+window.title("Name Display and Prediction App")
+
+# Create an input field
+entry = tk.Entry(window, width=30)
+entry.pack(pady=10)
+
+# Create a button
+button = tk.Button(window, text="Predict", command=display_name_and_predict)
+button.pack(pady=10)
+
+# Create a display label
+label = tk.Label(window, text="")
+label.pack(pady=10)
+
+# Run the Tkinter event loop
+window.mainloop()
+ChatGPT
+This code sets up a simple GUI application using the tkinter library in Python. The application allows users to enter a phrase, and upon clicking the "Predict" button, it predicts the sentiment of the entered phrase using a pre-trained model.
+
+Here's how the code works:
+
+Function to Handle Button Click (display_name_and_predict):
+This function is called when the user clicks the "Predict" button.
+It retrieves the text entered by the user from the input field (entry.get()).
+The entered text is tokenized into individual words, and each word is converted to its corresponding index in the word index mapping (word_index).
+The vectorized sequences of words are then passed to the model to make predictions.
+The function calculates the mean prediction score and determines the overall sentiment (positive or negative) based on the majority vote of individual word predictions.
+The predicted sentiment and the confidence level (mean prediction score) are displayed on the label (label.config(text=...)).
+Creating the Main Window (window):
+The main window of the application is created using tk.Tk(), and its title is set to "Name Display and Prediction App".
+Creating an Input Field (entry):
+An entry field is created to allow users to input a phrase. The width of the entry field is set to 30 characters.
+Creating a Button (button):
+A button labeled "Predict" is created, and its command is set to display_name_and_predict. This means that when the button is clicked, the display_name_and_predict function will be called.
+Creating a Display Label (label):
+A label is created to display the predicted sentiment and confidence level. Initially, it is left blank.
+Running the Tkinter Event Loop:
+The Tkinter event loop (window.mainloop()) is started to run the GUI application and handle user interactions.
+This GUI application provides a simple interface for users to input phrases and obtain sentiment predictions based on a pre-trained mode

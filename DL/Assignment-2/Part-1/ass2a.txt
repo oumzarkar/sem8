@@ -1,0 +1,146 @@
+data_path = 'letter-recognition.data'
+columns = ['letter'] + [f'feature_{i}' for i in range(16)]
+df = pd.read_csv(data_path, names=columns)
+
+label_encoder = LabelEncoder()
+df['target'] = label_encoder.fit_transform(df['letter'])
+X = df.drop(['letter', 'target'], axis=1)
+y = df['target']
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+Loads the dataset from the specified file path (data_path) using pandas read_csv function. It assumes the dataset has columns named 'letter' and 'feature_0' through 'feature_15'.
+Encodes the target variable 'letter' into numerical values using LabelEncoder.
+Separates features (in X) and the target variable (in y).
+Splits the dataset into training and testing sets using train_test_split function, with a test size of 20% and a specified random state for reproducibility.
+
+# Build the deep neural network model
+model = Sequential()
+model.add(Dense(128, activation='relu', input_shape=(16,)))
+model.add(Dense(64, activation='relu'))
+model.add(Dense(26, activation='softmax'))  # 26 classes for letters
+
+# Compile the model
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+
+# Evaluate the model
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f'Test Accuracy: {test_accuracy}')
+
+ChatGPT
+This code builds, compiles, trains, and evaluates a deep neural network model for the letter recognition task. Let's break down each step:
+
+Build the deep neural network model:
+model = Sequential(): Initializes a sequential model.
+model.add(Dense(128, activation='relu', input_shape=(16,))): Adds a dense layer with 128 units and ReLU activation function. The input shape is specified as (16,), corresponding to the number of features.
+model.add(Dense(64, activation='relu')): Adds another dense layer with 64 units and ReLU activation function.
+model.add(Dense(26, activation='softmax')): Adds the output layer with 26 units (one for each letter) and softmax activation function. Softmax is used for multi-class classification to output probabilities for each class.
+Compile the model:
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy']): Compiles the model with the Adam optimizer, sparse categorical cross-entropy loss function, and accuracy metric.
+Train the model:
+model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test)): Trains the model on the training data (X_train, y_train) for 10 epochs with a batch size of 32. Validation data (X_test, y_test) is used for validation during training.
+Evaluate the model:
+test_loss, test_accuracy = model.evaluate(X_test, y_test): Evaluates the trained model on the testing data (X_test, y_test) and retrieves the test loss and accuracy.
+print(f'Test Accuracy: {test_accuracy}'): Prints the test accuracy obtained from evaluating the model.
+
+
+class_mapping = {
+    0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J',
+    10: 'K', 11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T',
+    20: 'U', 21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z'
+}
+
+# Display the predicted class using the mapping
+predicted_letter = class_mapping[predicted_class]
+print(f'The predicted class is: {predicted_class}, which corresponds to the letter: {predicted_letter}')
+ChatGPT
+This code snippet defines a dictionary class_mapping that maps numerical class labels to their corresponding letters of the alphabet. Then, it uses this mapping to display the predicted letter based on a predicted class label. Let's break it down:
+
+class_mapping: This dictionary contains numerical class labels as keys and their corresponding letters of the alphabet as values. For example, 0 corresponds to 'A', 1 corresponds to 'B', and so on.
+predicted_class: This variable represents the predicted class label obtained from a classification model.
+predicted_letter = class_mapping[predicted_class]: This line retrieves the predicted letter corresponding to the predicted class label using the class_mapping dictionary.
+print(f'The predicted class is: {predicted_class}, which corresponds to the letter: {predicted_letter}'): This line prints out the predicted class label and its corresponding letter. It uses f-strings to format the output string dynamically.
+
+#dummy = 4, 7, 5, 5, 4, 6, 7, 3, 7, 11, 8, 9, 3, 8, 4, 8
+
+# Take input from the user
+user_input = input("Enter values for the 17 features separated by commas: ")
+user_input_list = [int(x) for x in user_input.split(',')]
+
+# Convert the user input to a NumPy array
+new_data = np.array(user_input_list).reshape(1, -1)
+
+# Use the model to make predictions
+predictions = model.predict(new_data)
+#print(predictions)
+# Display the predictions
+predicted_class = np.argmax(predictions)
+print(f'\nThe predicted class is: {predicted_class} i.e. {class_mapping[predicted_class]}')
+ChatGPT
+This code snippet takes input from the user for 17 features, converts the input into a NumPy array, and uses a pre-trained model to make predictions on the input data. Let's break it down:
+
+user_input = input("Enter values for the 17 features separated by commas: "): This line prompts the user to enter values for the 17 features, separated by commas. The input is stored as a string in the variable user_input.
+user_input_list = [int(x) for x in user_input.split(',')]: This line splits the user input string by commas and converts each substring (representing a feature value) into an integer. The resulting list is stored in user_input_list.
+new_data = np.array(user_input_list).reshape(1, -1): This line converts the user_input_list into a NumPy array and reshapes it into a 2-dimensional array with 1 row and as many columns as there are features (17 in this case). This format is suitable for making predictions with the model.
+predictions = model.predict(new_data): This line uses the pre-trained model to make predictions on the new data (new_data). The predict method returns an array of predicted probabilities for each class.
+predicted_class = np.argmax(predictions): This line finds the index of the maximum predicted probability in the predictions array, which corresponds to the predicted class label.
+print(f'\nThe predicted class is: {predicted_class} i.e. {class_mapping[predicted_class]}'): This line prints out the predicted class label and its corresponding letter using the class_mapping dictionary.
+
+import tkinter as tk
+import numpy as np
+
+# Function to handle button click
+def display_name_and_predict():
+    # Get the name from the input field
+    name = entry.get()
+    
+    user_input_list = [int(x) for x in user_input.split(',')]
+    
+    # Convert the user input to a NumPy array
+    new_data = np.array(user_input_list).reshape(1, -1)
+
+    # Use the model to make predictions
+    predictions = model.predict(new_data)
+    
+    # Display the predictions
+    predicted_class = np.argmax(predictions)
+    
+    # Display the name on the label
+    label.config(text=f"Predicted: {class_mapping[predicted_class]}")
+
+
+# Create the main window
+window = tk.Tk()
+window.title("Prediction App")
+
+# Create an input field
+entry = tk.Entry(window, width=30)
+entry.pack(pady=10)
+
+# Create a button
+button = tk.Button(window, text="Display Name and Predict", command=display_name_and_predict)
+button.pack(pady=10)
+
+# Create a display label
+label = tk.Label(window, text="")
+label.pack(pady=10)
+
+# Run the Tkinter event loop
+window.mainloop()
+
+ChatGPT
+This code sets up a simple GUI (Graphical User Interface) application using tkinter, where users can input values for 17 features, click a button to make predictions using a pre-trained model, and display the predicted class label in a label widget.
+
+Let's break down the code:
+
+import tkinter as tk: Imports the tkinter module for creating GUI applications.
+def display_name_and_predict(): Defines a function to handle button click events. It retrieves the user input from the entry field, converts it into a NumPy array, makes predictions using a pre-trained model, and updates the label with the predicted class label.
+window = tk.Tk(): Creates the main window for the application.
+window.title("Prediction App"): Sets the title of the window.
+entry = tk.Entry(window, width=30): Creates an entry field widget for users to input data.
+button = tk.Button(window, text="Display Name and Predict", command=display_name_and_predict): Creates a button widget that triggers the display_name_and_predict function when clicked.
+label = tk.Label(window, text=""): Creates a label widget to display the predicted class label.
+window.mainloop(): Enters the tkinter event loop to start the GUI application and handle user interactions.

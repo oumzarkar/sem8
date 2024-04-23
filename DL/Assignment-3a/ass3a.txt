@@ -1,0 +1,214 @@
+import numpy as np
+import pickle
+from keras.models import Sequential
+from keras.layers import BatchNormalization, Conv2D, MaxPooling2D, Flatten, Dropout, Dense
+from keras import backend as K
+from keras.optimizers import Adam
+#from keras.preprocessing.image import ImageDataGenerator, img_to_array
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
+import os
+
+def total_files(folder_path):
+    num_files = len([f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))])
+    return num_files
+train_healthy = "Train\Train\Healthy"
+train_powdery = "Train\Train\Powdery"
+train_rust = "Train\Train\Rust"
+
+test_healthy = "Test\Test\Healthy"
+test_powdery = "Test\Test\Powdery"
+test_rust = "Test\Test\Rust"
+
+valid_healthy = "Validation\Validation\Healthy"
+valid_powdery = "Validation\Validation\Powdery"
+valid_rust = "Validation\Validation\Rust"
+print("Number of healthy leaf images in training set", total_files(train_healthy))
+print("Number of powder leaf images in training set", total_files(train_powdery))
+print("Number of rusty leaf images in training set", total_files(train_rust))
+
+print("========================================================")
+
+print("Number of healthy leaf images in test set", total_files(test_healthy))
+print("Number of powder leaf images in test set", total_files(test_powdery))
+print("Number of rusty leaf images in test set", total_files(test_rust))
+
+print("========================================================")
+
+print("Number of healthy leaf images in validation set", total_files(valid_healthy))
+print("Number of powder leaf images in validation set", total_files(valid_powdery))
+print("Number of rusty leaf images in validation set", total_files(valid_rust))
+ChatGPT
+This code seems to be for a plant disease classification task using images of healthy leaves and leaves affected by powdery mildew and rust. Let's break down the code:
+
+Imports:
+The necessary libraries are imported, including numpy, pickle, keras, and tensorflow.
+Function Definition:
+The total_files function is defined to count the total number of files (images) in a given folder path.
+Folder Paths:
+Folder paths are defined for the training, testing, and validation datasets for each class (healthy, powdery mildew, and rust).
+For example, train_healthy points to the folder containing training images of healthy leaves.
+Counting Images:
+The total_files function is used to count the number of images in each class for the training, testing, and validation sets.
+The counts are printed to provide an overview of the dataset distribution.
+Print Statements:
+Print statements are used to display the number of images in each class for the training, testing, and validation sets.
+
+from PIL import Image
+import IPython.display as display
+
+image_path = 'Train\Train\Healthy\8ce77048e12f3dd4.jpg'
+
+with open(image_path, 'rb') as f:
+    display.display(display.Image(data=f.read(), width=500))
+
+train_datagen = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
+test_datagen = ImageDataGenerator(rescale=1./255)
+train_generator = train_datagen.flow_from_directory('Train\Train',
+                                                    target_size=(225, 225),
+                                                    batch_size=32,
+                                                    class_mode='categorical')
+
+validation_generator = test_datagen.flow_from_directory('Validation\Validation',
+                                                        target_size=(225, 225),
+                                                        batch_size=32,
+                                                        class_mode='categorical')
+Found 1322 images belonging to 3 classes.
+Found 60 images belonging to 3 classes.
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+
+
+ChatGPT
+This code snippet performs the following tasks:
+
+Display Image:
+It displays an image located at the specified path (image_path) using the PIL library and IPython's display module. The image is displayed with a width of 500 pixels.
+Image Data Generators:
+It sets up data generators for both training and validation datasets using ImageDataGenerator from Keras/TensorFlow.
+For the training data generator (train_datagen), data augmentation techniques such as rescaling, shearing, zooming, and horizontal flipping are applied.
+For the validation data generator (test_datagen), only rescaling is applied.
+Flow from Directory:
+The flow_from_directory method is used to generate batches of augmented data from the specified directory paths for training and validation.
+It specifies the target size of the images (225x225), batch size (32), and class mode (categorical), indicating that the labels are provided as categorical arrays.
+Model Definition:
+Importing necessary modules for building a convolutional neural network (CNN) model using Keras.
+
+model = Sequential()
+model.add(Conv2D(32, (3, 3), input_shape=(225, 225, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(64, activation='relu'))
+model.add(Dense(3, activation='softmax'))
+C:\Users\prati\anaconda3\Lib\site-packages\keras\src\layers\convolutional\base_conv.py:99: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+history = model.fit(train_generator,
+                    batch_size=16,
+                    epochs=5,
+                    validation_data=validation_generator,
+                    validation_batch_size=16
+                    )
+ChatGPT
+The provided code defines a convolutional neural network (CNN) model for image classification using Keras. Let's break down the code:
+
+Model Definition:
+The model is created using the Sequential API from Keras.
+It starts with a convolutional layer (Conv2D) with 32 filters, each with a size of 3x3. The input shape is specified as (225, 225, 3), representing the height, width, and number of channels (RGB) of the input images. ReLU activation function is used.
+Next, a max pooling layer (MaxPooling2D) with a pool size of 2x2 is added to reduce the spatial dimensions of the feature maps.
+Another convolutional layer is added with 64 filters and a 3x3 kernel, followed by another max pooling layer.
+The feature maps are then flattened using the Flatten layer to prepare for the fully connected layers.
+Two fully connected layers (Dense) are added with 64 neurons each, both using ReLU activation function.
+The final output layer has 3 neurons (equal to the number of classes) and uses softmax activation for multi-class classification.
+Model Compilation:
+The model is compiled with the Adam optimizer, categorical crossentropy loss function (suitable for multi-class classification), and accuracy as the evaluation metric.
+Model Training:
+The fit method is called to train the model.
+Training data is provided through the train_generator.
+Batch size is set to 16.
+The training is conducted for 5 epochs.
+Validation data is provided through the validation_generator.
+Validation batch size is set to 16.
+
+model.save('plant.h5')
+
+from tensorflow.keras.models import load_model
+# Load the model
+loaded_model = load_model('plant.h5')
+WARNING:absl:You are saving your model as an HDF5 file via `model.save()` or `keras.saving.save_model(model)`. This file format is considered legacy. We recommend using instead the native Keras format, e.g. `model.save('my_model.keras')` or `keras.saving.save_model(model, 'my_model.keras')`. 
+WARNING:absl:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+import tkinter as tk
+from tkinter import filedialog
+from PIL import Image, ImageTk
+import numpy as np
+from tensorflow.keras.models import load_model
+
+# Load the trained model
+loaded_model = load_model('plant.h5')
+
+# Define classes
+classes = ['Healthy', 'Powdery', 'Rusty']
+
+# Function to classify the image
+def classify_image():
+    file_path = filedialog.askopenfilename()
+    image = Image.open(file_path)
+    image = image.resize((225, 225))  # Resize image to match model input size
+    image = np.array(image) / 255.0  # Normalize pixel values
+    image = np.expand_dims(image, axis=0)  # Add batch dimension
+
+    # Predict class probabilities
+    predictions = loaded_model.predict(image)
+    class_index = np.argmax(predictions)
+    class_label = classes[class_index]
+
+    # Display selected image
+    img = ImageTk.PhotoImage(Image.open(file_path).resize((200, 200)))
+    image_label.config(image=img)
+    image_label.image = img
+
+    # Display prediction
+    result_label.config(text=f"Selected plant is {class_label}")
+
+# Create GUI
+root = tk.Tk()
+root.title("Plant Image Classifier")
+
+# Add widgets
+browse_button = tk.Button(root, text="Browse", command=classify_image)
+browse_button.pack(pady=10)
+
+image_label = tk.Label(root)
+image_label.pack(pady=5)
+
+result_label = tk.Label(root, text="")
+result_label.pack(pady=5)
+
+# Run the GUI
+root.mainloop()
+ChatGPT
+Your code defines a GUI application using Tkinter for classifying plant images using the trained model. Here's how it works:
+
+Load the Trained Model:
+You load the previously trained model saved as plant.h5.
+A warning message is displayed because the HDF5 file format is considered legacy. It suggests using the native Keras format instead.
+Define the GUI:
+You create a Tkinter window titled "Plant Image Classifier".
+Add a "Browse" button that allows users to select an image file.
+Display a label for showing the selected image.
+Display another label for showing the predicted class of the plant in the image.
+Classify Image Function:
+When the user clicks the "Browse" button, it opens a file dialog for selecting an image file.
+The selected image is resized to (225, 225) to match the input size of the model.
+Pixel values of the image are normalized to the range [0, 1].
+The image is expanded to add a batch dimension.
+The loaded model predicts the class probabilities for the image.
+The class with the highest probability is selected as the predicted class.
+The selected image is displayed in the GUI.
+The predicted class label is displayed in the GUI.
+Run the GUI:
+The GUI event loop is started, allowing users to interact with the application.
+
+
