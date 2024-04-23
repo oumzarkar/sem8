@@ -1,0 +1,32 @@
+import numpy as np: Imports the NumPy library with the alias np, which is a widely used library for numerical computing in Python.
+from tensorflow.keras.models import Sequential: Imports the Sequential class from the tensorflow.keras.models module. Sequential is a type of Keras model that allows you to create models layer-by-layer in a linear stack.
+from tensorflow.keras.layers import Dense, Input, Activation: Imports specific layer types (Dense, Input, and Activation) from the tensorflow.keras.layers module. These layers are building blocks for constructing neural networks.
+from tensorflow.keras.datasets import boston_housing: Imports the Boston Housing dataset, which is a built-in dataset in Keras containing housing prices and attributes.
+from tensorflow.keras import layers: Imports the layers module from TensorFlow Keras, which provides additional functionality for building neural networks.
+import tensorflow as tf: Imports TensorFlow, an open-source machine learning framework developed by Google.
+import matplotlib.pyplot as plt: Imports the pyplot module from the matplotlib library with the alias plt. This allows for data visualization, such as plotting graphs.
+SEED_VALUE = 42: Defines a constant SEED_VALUE with the value 42. This is used to seed the random number generators for reproducibility.
+np.random.seed(SEED_VALUE): Sets the seed for NumPy's random number generator to ensure reproducibility of random operations.
+tf.random.set_seed(SEED_VALUE): Sets the seed for TensorFlow's random number generator to ensure reproducibility of random operations.
+
+(X_train, y_train), (X_test, y_test) = boston_housing.load_data(): Loads the Boston Housing dataset using the load_data() function from the boston_housing module. This function returns tuples containing training and testing data for input features (X_train and X_test) and output targets (y_train and y_test).
+print(X_train.shape): Prints the shape of the training input features array X_train, which indicates the dimensions of the array (i.e., number of samples and number of features).
+print("\n"): Prints a blank line for formatting purposes.
+print("Input features: ", X_train[0]): Prints the first sample of the training input features array X_train, showing the values of the input features for that sample.
+print("\n"): Prints a blank line for formatting purposes.
+print("Output target: ", y_train[0]): Prints the output target value corresponding to the first sample in the training data y_train.
+boston_features = {'Average Number of Rooms':5}: Creates a dictionary boston_features with a single key-value pair. This dictionary associates a feature name ('Average Number of Rooms') with its index in the dataset (5).
+X_train_1d = X_train[:, boston_features['Average Number of Rooms']]: Selects a single feature (average number of rooms) from the training input features array X_train using fancy indexing. This creates a 1-dimensional array containing only the values of the selected feature for all samples in the training set.
+print(X_train_1d.shape): Prints the shape of the 1-dimensional array X_train_1d, indicating the number of samples in the training set and the single feature dimension.
+X_test_1d = X_test[:, boston_features['Average Number of Rooms']]: Selects the same feature from the testing input features array X_test to create a 1-dimensional array X_test_1d
+
+model = Sequential(): Initializes a sequential model using the Sequential class from Keras. Sequential models are a linear stack of layers.
+model.add(Dense(units=1, input_shape=(1,))): Adds a single fully connected (dense) layer to the model. This layer has one neuron (units=1) and expects input data of shape (1,). The input_shape=(1,) indicates that the input data consists of one feature.
+model.summary(): Prints a summary of the model architecture, including the type of each layer and the number of parameters.
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=.005), loss='mse'): Compiles the model. Here, we specify the optimizer as RMSprop with a learning rate of 0.005 and the loss function as Mean Squared Error (mse), which is commonly used for regression problems.
+history = model.fit(X_train_1d, y_train, batch_size=16, epochs=101, validation_split=0.3): Fits the model to the training data. It trains the model for 101 epochs with a batch size of 16. The validation_split=0.3 parameter specifies that 30% of the training data will be used for validation during training. The training history is stored in the history variable, which can be used for visualization and analysis.
+
+x = np.array([3, 4, 5]): Creates a NumPy array x containing three values representing the number of rooms for three different homes.
+y_pred = model.predict(x): Uses the trained model (model) to make predictions on the input data x. The predict method generates predictions for the input data.
+for idx in range(len(x)):: Iterates over each element in the input data x.
+print("Predicted price of a home with {} rooms: ${}K".format(x[idx], int(y_pred[idx]*10)/10)): Prints the predicted price for each home. It retrieves the predicted price for the current home (y_pred[idx]), multiplies it by 10, converts it to an integer, and then divides by 10 to round it to one decimal place. The predicted price is then formatted into the output string along with the corresponding number of rooms (x[idx]).

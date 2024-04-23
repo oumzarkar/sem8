@@ -1,0 +1,58 @@
+import numpy as np: Imports the NumPy library with the alias np, which is used for numerical computations.
+import matplotlib.pyplot as plt: Imports the Matplotlib library with the alias plt, which is used for data visualization.
+from tensorflow.keras.datasets import fashion_mnist: Imports the Fashion MNIST dataset from TensorFlow's Keras API.
+from tensorflow.keras.models import Sequential: Imports the Sequential class from Keras, which is used to create a sequential neural network model.
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense: Imports various layer types from Keras, including convolutional, pooling, flattening, and dense layers.
+from tensorflow.keras.utils import to_categorical: Imports the to_categorical function from Keras utils, which is used to convert class vectors (integers) to binary class matrices for categorical classification.
+(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data(): Loads the Fashion MNIST dataset into training and testing sets, including images and their corresponding labels.
+train_images = ...: Preprocesses the training images by reshaping them to have a single channel (grayscale), normalizing the pixel values to the range [0, 1], and converting the data type to float32.
+test_images = ...: Preprocesses the testing images in the same way as the training images.
+train_labels = ...: Converts the training labels to categorical format using to_categorical.
+test_labels = ...: Converts the testing labels to categorical format using to_categorical.
+model = Sequential([...]): Defines a sequential model using Keras' Sequential API, comprising convolutional, max pooling, flattening, and dense layers.
+model.compile(...): Compiles the model, specifying the optimizer (Adam), loss function (categorical crossentropy), and evaluation metric (accuracy).
+model.fit(...): Trains the model on the training data for 15 epochs with a batch size of 64 and a validation split of 0.2.
+random_indices = ...: Selects random indices from the test set to pick sample images for visualization.
+sample_images = ...: Selects sample images from the test set based on the randomly chosen indices.
+sample_labels = ...: Selects corresponding sample labels from the test set.
+predictions = ...: Makes predictions on the sample images using the trained model.
+predicted_labels = ...: Converts the predicted probabilities to class labels.
+class_labels = [...]: Defines class labels for visualization.
+plt.figure(...): Sets up the Matplotlib figure for displaying images with true and predicted labels.
+for i in range(num_samples):: Iterates over each sample image to display it with its true and predicted labels.
+plt.subplot(...): Creates subplots within the figure to display each image.
+plt.imshow(...): Displays the image using Matplotlib's imshow function.
+plt.title(...): Sets the title of each subplot with the true and predicted labels.
+plt.axis('off'): Turns off the axis labels for cleaner visualization.
+plt.tight_layout(): Adjusts the layout of subplots to prevent overlapping.
+plt.show(): Displays the Matplotlib figure containing the sample images with their true and predicted labels.
+
+import tkinter as tk: Imports the Tkinter module, which provides functions and classes for creating graphical user interfaces (GUIs).
+from tkinter import ttk, filedialog: Imports specific modules and classes from Tkinter for creating widgets and handling file dialogs.
+from PIL import ImageTk, Image: Imports classes from the Python Imaging Library (PIL) for working with images.
+import numpy as np: Imports the NumPy library for numerical computations.
+from tensorflow.keras.models import load_model: Imports the function load_model from Keras for loading a pre-trained model.
+model = load_model('my_cnn_model.h5'): Loads the pre-trained CNN model from the file 'my_cnn_model.h5'.
+class_labels = [...]: Defines class labels for the fashion categories used by the model.
+def predict_image():: Defines a function predict_image() to handle the prediction process when the user uploads an image.
+file_path = filedialog.askopenfilename(): Opens a file dialog to allow the user to select an image file. If a file is selected, its path is stored in file_path.
+if not file_path: return: Checks if the user canceled the file dialog. If so, exits the function.
+Image Processing:
+Opens the selected image file using PIL's Image.open() function and converts it to grayscale.
+Resizes the image to the required input size of the model (28x28 pixels).
+Normalizes the pixel values to the range [0, 1].
+Reshapes the image into a format compatible with the model.
+Model Prediction:
+Uses the loaded model to make predictions on the preprocessed image.
+Determines the predicted label based on the class with the highest probability.
+Display:
+Opens the original image file without grayscale conversion and resizes it for display.
+Converts the image to a Tkinter-compatible format using ImageTk.PhotoImage().
+Updates the image label widget with the displayed image.
+Updates the status label widget with the predicted label.
+Widget Creation:
+Creates the main application window (root) using tk.Tk().
+Sets the window title to "Fashion MNIST Image Classifier".
+Adds a button (upload_button) for uploading an image and triggering prediction.
+Adds labels (image_label and status_label) for displaying the image and prediction status.
+root.mainloop(): Starts the Tkinter event loop, which waits for user interactions and updates the GUI accordingly.
