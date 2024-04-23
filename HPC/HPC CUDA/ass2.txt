@@ -1,0 +1,210 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>  // For rand()
+#include <ctime>    // For clock()
+These are header includes for input/output operations (iostream), vectors (vector), random number generation (cstdlib), and time measurement (ctime).
+cpp
+Copy code
+// Sequential Bubble Sort
+void bubbleSortSequential(int* arr, int size) {
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+This function bubbleSortSequential implements the sequential bubble sort algorithm. It takes an array arr and its size size as input and sorts the array in ascending order.
+cpp
+Copy code
+// Parallel Bubble Sort using CUDA
+__global__ void bubbleSortParallel(int* arr, int size) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (tid < size) {
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - i - 1; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+    }
+}
+This is the CUDA kernel function bubbleSortParallel for parallel bubble sort. It takes an array arr and its size size as input and sorts the array in ascending order. Each thread is responsible for sorting a single element of the array.
+cpp
+Copy code
+int main() {
+    const int size = 1000;
+    int arr[size];
+    for (int i = 0; i < size; i++) {
+        arr[i] = rand() % 1000;  // Random numbers between 0 and 999
+    }
+This is the main function. It initializes an array arr of size size with random integers between 0 and 999.
+cpp
+Copy code
+    // Measure sequential bubble sort time
+    clock_t startSeqBubble = clock();
+    bubbleSortSequential(arr, size);
+    clock_t endSeqBubble = clock();
+    double timeSeqBubble = double(endSeqBubble - startSeqBubble) / CLOCKS_PER_SEC;
+This block measures the execution time of the sequential bubble sort algorithm by recording the start time (startSeqBubble), calling the bubbleSortSequential function, and then recording the end time (endSeqBubble). The total execution time is calculated and stored in timeSeqBubble.
+cpp
+Copy code
+    // Measure parallel bubble sort time
+    int* d_arr;
+    cudaMalloc(&d_arr, size * sizeof(int));
+    cudaMemcpy(d_arr, arr, size * sizeof(int), cudaMemcpyHostToDevice);
+
+    clock_t startParBubble = clock();
+    bubbleSortParallel<<<(size + 255) / 256, 256>>>(d_arr, size);
+    cudaDeviceSynchronize();
+    clock_t endParBubble = clock();
+    double timeParBubble = double(endParBubble - startParBubble) / CLOCKS_PER_SEC;
+This block measures the execution time of the parallel bubble sort algorithm on the GPU. It allocates memory on the GPU, copies the array arr from the host to the device, records the start time (startParBubble), launches the CUDA kernel bubbleSortParallel, waits for all threads to finish executing (cudaDeviceSynchronize()), records the end time (endParBubble), and calculates the total execution time (timeParBubble).
+cpp
+Copy code
+    // Print execution times
+    std::cout << "Sequential Bubble Sort Time: " << timeSeqBubble << " seconds" << std::endl;
+    std::cout << "Parallel Bubble Sort Time: " << timeParBubble << " seconds" << std::endl;
+
+    // Free device memory
+    cudaFree(d_arr);
+
+    return 0;
+}
+Finally, this block prints the execution times of both sequential and parallel bubble sort algorithms and frees the memory allocated on the GPU.
+
+
+
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <cstdlib>  // For rand()
+#include <ctime>    // For clock()
+These are header includes for input/output operations (iostream), vectors (vector), random number generation (cstdlib), and time measurement (ctime).
+cpp
+Copy code
+// Sequential Merge Sort
+void mergeSortSequential(int* arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSortSequential(arr, left, mid);
+        mergeSortSequential(arr, mid + 1, right);
+
+        // Merge the sorted halves
+        int temp[right - left + 1];
+        int i = left, j = mid + 1, k = 0;
+
+        while (i <= mid && j <= right) {
+            if (arr[i] <= arr[j]) {
+                temp[k++] = arr[i++];
+            } else {
+                temp[k++] = arr[j++];
+            }
+        }
+
+        while (i <= mid) {
+            temp[k++] = arr[i++];
+        }
+
+        while (j <= right) {
+            temp[k++] = arr[j++];
+        }
+
+        for (int p = 0; p < k; p++) {
+            arr[left + p] = temp[p];
+        }
+    }
+}
+This function mergeSortSequential implements the sequential merge sort algorithm. It takes an array arr, left index left, and right index right as input and sorts the array in ascending order within the specified range.
+cpp
+Copy code
+// Parallel Merge Sort using CUDA
+__global__ void merge(int* arr, int left, int mid, int right, int* temp) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int i = left + tid;
+    int j = mid + 1 + tid;
+    int k = tid;
+
+    while (i <= mid && j <= right) {
+        if (arr[i] <= arr[j]) {
+            temp[k] = arr[i];
+            i += blockDim.x * gridDim.x;
+        } else {
+            temp[k] = arr[j];
+            j += blockDim.x * gridDim.x;
+        }
+        k += blockDim.x * gridDim.x;
+    }
+
+    while (i <= mid) {
+        temp[k] = arr[i];
+        i += blockDim.x * gridDim.x;
+        k += blockDim.x * gridDim.x;
+    }
+
+    while (j <= right) {
+        temp[k] = arr[j];
+        j += blockDim.x * gridDim.x;
+        k += blockDim.x * gridDim.x;
+    }
+
+    __syncthreads();
+
+    // Copy merged elements back to the original array
+    for (int idx = tid; idx < k; idx += blockDim.x * gridDim.x) {
+        arr[left + idx] = temp[idx];
+    }
+}
+This is the CUDA kernel function merge for merging two sorted halves of an array. It takes an array arr, left index left, mid index mid, right index right, and temporary array temp as input and merges the two sorted halves into a single sorted array.
+cpp
+Copy code
+void mergeSortParallel(int* arr, int left, int right, int* temp) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+        mergeSortParallel(arr, left, mid, temp);
+        mergeSortParallel(arr, mid + 1, right, temp);
+        merge<<<1, 1>>>(arr, left, mid, right, temp);
+    }
+}
+This function mergeSortParallel is used to invoke the parallel merge sort algorithm on the GPU. It takes an array arr, left index left, right index right, and temporary array temp as input and launches the CUDA kernel merge to merge the sorted halves of the array.
+cpp
+Copy code
+int main() {
+    const int size = 1000;
+    int arr[size];
+    for (int i = 0; i < size; i++) {
+        arr[i] = rand() % 1000;  // Random numbers between 0 and 999
+    }
+This is the main function. It initializes an array arr of size size with random integers between 0 and 999.
+cpp
+Copy code
+    clock_t startSeqMerge = clock();
+    mergeSortSequential(arr, 0, size - 1);
+    clock_t endSeqMerge = clock();
+    double timeSeqMerge = double(endSeqMerge - startSeqMerge) / CLOCKS_PER_SEC;
+
+    clock_t startParMerge = clock();
+    parallelMergeSort(arr, size);
+    clock_t endParMerge = clock();
+    double timeParMerge = double(endParMerge - startParMerge) / CLOCKS_PER_SEC;
+This block measures the execution times of both sequential and parallel merge sort algorithms by recording the start and end times and calculating the total execution times.
+cpp
+Copy code
+    // Print execution times
+    std::cout << "Sequential Merge Sort Time: " << timeSeqMerge << " seconds" << std::endl;
+    std::cout << "Parallel Merge Sort Time: " << timeParMerge << " seconds" << std::endl;
+
+    return 0;
+}
+Finally, this block prints the execution times of both sequential and parallel merge sort algorithms.

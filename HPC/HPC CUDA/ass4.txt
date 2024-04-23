@@ -1,0 +1,137 @@
+The add.cu file contains CUDA code to perform vector addition on the GPU. Let's go through it line by line:
+
+cpp
+Copy code
+#include <iostream>
+#include <cstdlib>
+These are the standard library headers included for input/output operations (iostream) and dynamic memory management (cstdlib).
+cpp
+Copy code
+using namespace std;
+This line declares that symbols from the std namespace are being used.
+cpp
+Copy code
+__global__
+void add(int* A, int* B, int* C, int size) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < size) {
+        C[tid] = A[tid] + B[tid];
+    }
+}
+This is the kernel function add, which will be executed on the GPU. It takes three integer pointers A, B, and C, representing the input vectors A and B, and the output vector C, along with the size of the vectors size. Each thread calculates its index tid, and if it's within the size of the vectors, it computes the element-wise addition of vectors A and B and stores the result in vector C.
+cpp
+Copy code
+void print(int* vector, int size) {
+    for (int i = 0; i < size; i++) {
+        cout << vector[i] << " ";
+    }
+    cout << endl;
+}
+This is a helper function print to print the contents of an integer array vector of size size.
+cpp
+Copy code
+int main() {
+    int N;
+    cout << "Enter the size of the vectors: ";
+    cin >> N;
+The main function starts by prompting the user to enter the size of the vectors.
+cpp
+Copy code
+    int* A, * B, * C;
+    int vectorSize = N;
+    size_t vectorBytes = vectorSize * sizeof(int);
+
+    // Allocate host memory
+    A = new int[vectorSize];
+    B = new int[vectorSize];
+    C = new int[vectorSize];
+Three integer pointers A, B, and C are declared to represent the vectors A, B, and C. Memory is allocated for these vectors on the host using new.
+cpp
+Copy code
+    // Initialize host arrays
+    cout << "Enter elements of vector A:" << endl;
+    for (int i = 0; i < N; i++) {
+        cin >> A[i];
+    }
+    cout << "Enter elements of vector B:" << endl;
+    for (int i = 0; i < N; i++) {
+        cin >> B[i];
+    }
+    cout << "Vector A: ";
+    print(A, N);
+    cout << "Vector B: ";
+    print(B, N);
+The user is prompted to enter the elements of vectors A and B, and the contents of these vectors are printed.
+cpp
+Copy code
+    int* X, * Y, * Z;
+    // Allocate device memory
+    cudaMalloc(&X, vectorBytes);
+    cudaMalloc(&Y, vectorBytes);
+    cudaMalloc(&Z, vectorBytes);
+Three integer pointers X, Y, and Z are declared to represent the vectors A, B, and C on the device. Memory is allocated for these vectors on the device using cudaMalloc.
+cpp
+Copy code
+    // Check for CUDA memory allocation errors
+    if (X == nullptr || Y == nullptr || Z == nullptr) {
+        cerr << "CUDA memory allocation failed" << endl;
+        return 1;
+    }
+Error handling is performed to check if the memory allocation on the device was successful.
+cpp
+Copy code
+    // Copy data from host to device
+    cudaMemcpy(X, A, vectorBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(Y, B, vectorBytes, cudaMemcpyHostToDevice);
+The data from vectors A and B on the host is copied to vectors X and Y on the device using cudaMemcpy.
+cpp
+Copy code
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+
+    // Launch kernel
+    add<<<blocksPerGrid, threadsPerBlock>>>(X, Y, Z, N);
+The kernel function add is launched with appropriate thread block size and grid size configurations.
+cpp
+Copy code
+    // Check for kernel launch errors
+    cudaError_t kernelLaunchError = cudaGetLastError();
+    if (kernelLaunchError != cudaSuccess) {
+        cerr << "CUDA kernel launch failed: " << cudaGetErrorString(kernelLaunchError) << endl;
+        return 1;
+    }
+Error handling is performed to check if the kernel launch was successful.
+cpp
+Copy code
+    // Copy result from device to host
+    cudaMemcpy(C, Z, vectorBytes, cudaMemcpyDeviceToHost);
+The result vector Z on the device is copied back to vector C on the host using cudaMemcpy.
+cpp
+Copy code
+    // Check for CUDA memcpy errors
+    cudaError_t memcpyError = cudaGetLastError();
+    if (memcpyError != cudaSuccess) {
+        cerr << "CUDA memcpy failed: " << cudaGetErrorString(memcpyError) << endl;
+        return 1;
+    }
+Error handling is performed to check if the data transfer from the device to the host was successful.
+cpp
+Copy code
+    cout << "Addition: ";
+    print(C, N);
+The result vector C is printed.
+cpp
+Copy code
+    // Free device memory
+    cudaFree(X);
+    cudaFree(Y);
+    cudaFree(Z);
+
+    // Free host memory
+    delete[] A;
+    delete[] B;
+    delete[] C;
+
+    return 0;
+}
+Memory allocated on the device is freed, and memory allocated on the host is deallocated before the program exits.

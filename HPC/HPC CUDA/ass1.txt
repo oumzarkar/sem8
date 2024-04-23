@@ -1,0 +1,81 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <omp.h>
+
+using namespace std;
+#include <iostream>: This includes the input/output stream library, which allows the program to interact with the standard input and output streams.
+#include <queue>: This includes the queue library, which provides a container to hold elements in a first-in-first-out (FIFO) manner.
+#include <vector>: This includes the vector library, which provides a dynamic array-like data structure.
+#include <omp.h>: This includes the OpenMP library, which is used for parallel programming with shared memory multiprocessing.
+cpp
+Copy code
+int main() {
+int main(): This is the main function, the entry point of the program.
+cpp
+Copy code
+    int num_vertices, num_edges, source;
+    cout << "Enter number of vertices, edges, and source node: ";
+    cin >> num_vertices >> num_edges >> source;
+int num_vertices, num_edges, source;: Declares integer variables num_vertices, num_edges, and source.
+cout << "Enter number of vertices, edges, and source node: ";: Outputs a prompt message to the standard output stream.
+cin >> num_vertices >> num_edges >> source;: Reads input values for num_vertices, num_edges, and source from the standard input stream.
+cpp
+Copy code
+    // Input validation
+    if (source < 1 || source > num_vertices) {
+        cout << "Invalid source node!" << endl;
+        return 1;
+    }
+Input validation: Checks if the source node is within the valid range (1 to num_vertices). If not, it prints an error message and exits the program with a non-zero return code.
+cpp
+Copy code
+    vector<vector<int>> adj_list(num_vertices + 1);
+    for (int i = 0; i < num_edges; i++) {
+        int u, v;
+        cin >> u >> v;
+        // Input validation for edges
+        if (u < 1 || u > num_vertices || v < 1 || v > num_vertices) {
+            cout << "Invalid edge: " << u << " " << v << endl;
+            return 1;
+        }
+        adj_list[u].push_back(v);
+        adj_list[v].push_back(u);
+    }
+vector<vector<int>> adj_list(num_vertices + 1);: Declares a vector of vectors to represent the adjacency list of the graph. Each vertex u has a vector containing its adjacent vertices.
+Loop to read edges: Reads the edges of the graph from the input and adds them to the adjacency list. It also performs input validation for the edges to ensure they are within the valid range.
+cpp
+Copy code
+    queue<int> q;
+    vector<bool> visited(num_vertices + 1, false);
+    q.push(source);
+    visited[source] = true;
+queue<int> q;: Declares a queue q to perform breadth-first search traversal.
+vector<bool> visited(num_vertices + 1, false);: Declares a boolean vector visited to keep track of visited vertices. Initializes all vertices as not visited.
+Enqueue the source node: Adds the source node to the queue and marks it as visited.
+cpp
+Copy code
+    while (!q.empty()) {
+        int curr_vertex = q.front();
+        q.pop();
+        cout << curr_vertex << " ";
+
+        // Sequential loop for neighbors
+        for (int i = 0; i < adj_list[curr_vertex].size(); i++) {
+            int neighbour = adj_list[curr_vertex][i];
+            if (!visited[neighbour]) {
+                visited[neighbour] = true;
+                q.push(neighbour);
+            }
+        }
+    }
+BFS traversal loop: Continues until the queue is empty.
+Dequeue current vertex: Removes the front element from the queue and prints it.
+Sequential loop for neighbors: Iterates over the neighbors of the current vertex and enqueues unvisited neighbors.
+visited array is updated to mark visited vertices.
+cpp
+Copy code
+    cout << endl;
+    return 0;
+}
+Print newline and return: Outputs a newline character and returns 0 to indicate successful program execution.

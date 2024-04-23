@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+#include <climits>
+These are the necessary header includes for input/output operations (iostream), vectors (vector), and integer limits (climits).
+cpp
+Copy code
+__global__ void min_reduction_kernel(int* arr, int size, int* result) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < size) {
+        atomicMin(result, arr[tid]);
+    }
+}
+This CUDA kernel function min_reduction_kernel is responsible for finding the minimum value in the array. Each thread computes the minimum value within its assigned portion of the array using atomic operations (atomicMin).
+cpp
+Copy code
+__global__ void max_reduction_kernel(int* arr, int size, int* result) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < size) {
+        atomicMax(result, arr[tid]);
+    }
+}
+Similarly, max_reduction_kernel finds the maximum value in the array using atomic operations (atomicMax).
+cpp
+Copy code
+__global__ void sum_reduction_kernel(int* arr, int size, int* result) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < size) {
+        atomicAdd(result, arr[tid]);
+    }
+}
+The sum_reduction_kernel calculates the sum of all elements in the array using atomic addition (atomicAdd).
+cpp
+Copy code
+__global__ void average_reduction_kernel(int* arr, int size, int* sum) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid < size) {
+        atomicAdd(sum, arr[tid]);
+    }
+}
+This kernel function average_reduction_kernel computes the sum of all elements in the array, which will later be used to calculate the average.
+cpp
+Copy code
+int main() {
+    int size;
+    std::cout << "Enter the size of the array: ";
+    std::cin >> size;
+
+    std::vector<int> arr(size);
+    for (int i = 0; i < size; ++i) {
+        std::cout << "Enter element " << i << ": ";
+        std::cin >> arr[i];
+    }
+In the main function, the user is prompted to enter the size of the array and its elements.
+cpp
+Copy code
+    int* d_arr;
+    int* d_result;
+    int result_min = INT_MAX;
+    int result_max = INT_MIN;
+    int result_sum = 0;
+
+    // Allocate memory on the device
+    cudaMalloc(&d_arr, size * sizeof(int));
+    cudaMalloc(&d_result, sizeof(int));
+
+    // Copy data from host to device
+    cudaMemcpy(d_arr, arr.data(), size * sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_result, &result_min, sizeof(int), cudaMemcpyHostToDevice);
+Memory is allocated on the device for the array and the result. The array data is then copied from the host to the device, and the initial result values are copied to the device as well.
+cpp
+Copy code
+    // Perform min reduction
+    min_reduction_kernel<<<(size + 255) / 256, 256>>>(d_arr, size, d_result);
+    cudaMemcpy(&result_min, d_result, sizeof(int), cudaMemcpyDeviceToHost);
+    std::cout << "Minimum value: " << result_min << std::endl;
+
+    // Perform max reduction
+    cudaMemcpy(d_result, &result_max, sizeof(int), cudaMemcpyHostToDevice);
+    max_reduction_kernel<<<(size + 255) / 256, 256>>>(d_arr, size, d_result);
+    cudaMemcpy(&result_max, d_result, sizeof(int), cudaMemcpyDeviceToHost);
+    std::cout << "Maximum value: " << result_max << std::endl;
+
+    // Perform sum reduction
+    cudaMemcpy(d_result, &result_sum, sizeof(int), cudaMemcpyHostToDevice);
+    sum_reduction_kernel<<<(size + 255) / 256, 256>>>(d_arr, size, d_result);
+    cudaMemcpy(&result_sum, d_result, sizeof(int), cudaMemcpyDeviceToHost);
+    std::cout << "Sum: " << result_sum << std::endl;
+The min_reduction_kernel, max_reduction_kernel, and sum_reduction_kernel are invoked to perform reductions for finding the minimum, maximum, and sum, respectively. The results are then copied back to the host and printed.
+cpp
+Copy code
+    // Perform average reduction on CPU side
+    double average = static_cast<double>(result_sum) / size;
+    std::cout << "Average: " << average << std::endl;
+
+    // Free device memory
+    cudaFree(d_arr);
+    cudaFree(d_result);
+
+    return 0;
+}
+Finally, the average is calculated on the CPU side using the sum obtained from the GPU. Device memory is deallocated, and the program exits.
